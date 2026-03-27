@@ -40,7 +40,7 @@ st.markdown(f"""
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen */
+    /* 2C. Sidebar Knoppen - Blijven nu 100% wit, ook bij hover! */
     div.stButton > button {{
         width: 100% !important;
         background-color: white !important;
@@ -56,8 +56,8 @@ st.markdown(f"""
 
     div.stButton > button:hover, div.stButton > button:focus, div.stButton > button:active {{
         transform: scale(1.05) !important; 
-        background-color: {BRAND_NAVY} !important; 
-        color: white !important;    
+        background-color: white !important; 
+        color: {BRAND_NAVY} !important;    
         border-color: {BRAND_GOLD} !important;
         box-shadow: none !important;
         outline: none !important;
@@ -83,7 +83,7 @@ st.markdown(f"""
         max-width: 95%;
     }}
 
-    /* Maak titels Navy zodat ze leesbaar zijn op het wit */
+    /* Maak titels Navy zodat ze perfect leesbaar zijn op het wit */
     h1, h2, h3, h4, h5, h6 {{
         color: {BRAND_NAVY} !important;
     }}
@@ -102,6 +102,7 @@ with st.sidebar:
     if st.button("📊 Heat Map"): st.session_state.page = "📊 Heat Map"
     
     st.markdown("---")
+    # De Timeline blijft in het lichte thema voor een perfecte integratie in de witte zijbalk
     components.html("""
         <iframe src="https://www.tradingview.com/embed-widget/timeline/?colorTheme=light&isTransparent=true&displayMode=adaptive" 
         width="100%" height="800" frameborder="0"></iframe>
@@ -117,7 +118,7 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Terug naar Dark Theme met een solide achtergrond zodat hij niet wit uitslaat)
+# Ticker Tape (Dark Theme met een solide achtergrond)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=false&displayMode=adaptive" 
     width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
@@ -212,7 +213,7 @@ elif st.session_state.page == "🛢️ Commodities & Oil":
     commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
     render_portal_grid(commodities_list, "com")
 elif st.session_state.page == "📊 Heat Map":
-    # Heatmap terug op Dark Theme, verpakt in een div met gouden rand om te blenden met de pagina
+    # Heatmap terug op Dark Theme, verpakt in een div met gouden rand
     c_links, c_heatmap, c_rechts = st.columns([1, 5, 1])
     with c_heatmap:
         components.html("""
@@ -220,4 +221,3 @@ elif st.session_state.page == "📊 Heat Map":
             <iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="850" frameborder="0" style="display: block;"></iframe>
         </div>
         """, height=870)
-        
