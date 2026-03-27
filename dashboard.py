@@ -9,84 +9,83 @@ BRAND_NAVY = "#0A1B2E"
 
 st.set_page_config(page_title="DC STOXX Portal", layout="wide", initial_sidebar_state="expanded")
 
-# Geavanceerde CSS voor de Corporate Header & Portal Look
+# Geavanceerde CSS voor de "Clean Header" look
 st.markdown(f"""
     <style>
     /* Algemene achtergrond */
     .stApp {{ background-color: {BRAND_NAVY}; color: white; }}
     [data-testid="stSidebar"] {{ background-color: {BRAND_NAVY}; border-right: 2px solid {BRAND_GOLD}; }}
     
-    /* DE WITTE CORPORATE HEADER */
-    .main .block-container {{ padding-top: 0rem !important; max-width: 95%; }}
-    [data-testid="stHeader"] {{ visibility: hidden; }} /* Verberg standaard Streamlit header */
+    /* Verwijder alle Streamlit witruimte bovenaan */
+    [data-testid="stHeader"] {{ display: none; }}
+    .main .block-container {{ padding-top: 0rem !important; padding-bottom: 0rem !important; max-width: 98%; }}
+    
+    /* De Ticker Tape Container (Absolute Top) */
+    .ticker-wrapper {{
+        width: 100%;
+        height: 50px;
+        background-color: {BRAND_NAVY};
+    }}
 
+    /* De Witte Logo Balk (Direct onder Ticker) */
     .corporate-header {{
         background-color: #FFFFFF;
         width: 100%;
-        padding: 10px 0;
-        border-bottom: 4px solid {BRAND_GOLD};
+        padding: 5px 0;
+        border-bottom: 3px solid {BRAND_GOLD};
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-bottom: 25px;
-        position: relative;
     }}
 
     /* Tab Styling */
-    .stTabs [data-baseweb="tab-list"] {{ gap: 24px; background-color: transparent; }}
+    .stTabs [data-baseweb="tab-list"] {{ gap: 24px; padding-top: 15px; }}
     .stTabs [data-baseweb="tab"] {{
-        height: 50px; background-color: transparent; border: none; color: #8892B0;
-        font-weight: 600; font-size: 16px; transition: 0.3s;
+        height: 50px; color: #8892B0; font-weight: 600; font-size: 16px;
     }}
     .stTabs [aria-selected="true"] {{ 
-        border-bottom: 3px solid {BRAND_GOLD} !important; 
-        color: {BRAND_GOLD} !important; 
-    }}
-
-    /* Card Container */
-    .container {{ 
-        position: relative; width: 98%; height: 550px; 
-        border: 1px solid {BRAND_GOLD}33; border-radius: 12px; 
-        background: #131722; cursor: pointer; transition: 0.3s;
+        border-bottom: 3px solid {BRAND_GOLD} !important; color: {BRAND_GOLD} !important; 
     }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DE HEADER (LOGO CENTRAAL) ---
-# We gebruiken st.columns om het logo in het midden te plaatsen binnen de witte balk
-st.markdown('<div style="background-color: white; border-bottom: 4px solid #B89B5E; padding: 10px 0; margin-bottom: 25px;">', unsafe_allow_html=True)
-col_l, col_logo, col_r = st.columns([1, 0.6, 1])
+# --- 2. DE ABSOLUTE BOVENKANT: TICKER TAPE ---
+# We zetten deze in een container zonder marges
+components.html("""
+    <div style="margin: -8px -8px 0 -8px;">
+        <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=false&backgroundColor=%230A1B2E&displayMode=adaptive" 
+        width="100%" height="46" frameborder="0"></iframe>
+    </div>
+""", height=46)
+
+# --- 3. DE WITTE HEADER MET LOGO (Direct eronder) ---
+st.markdown('<div style="background-color: white; border-bottom: 3px solid #B89B5E; padding: 8px 0; margin-top: -10px;">', unsafe_allow_html=True)
+col_l, col_logo, col_r = st.columns([1, 0.5, 1])
 with col_logo:
     try:
+        # We laden het logo centraal
         st.image("Logo.png", use_container_width=True)
     except:
-        st.markdown("<h1 style='color:black; text-align:center; margin:0;'>DC STOXX</h1>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:black; text-align:center; margin:0;'>DC STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 3. SIDEBAR (News Feed) ---
+# --- 4. SIDEBAR (News Feed) ---
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center; color:{BRAND_GOLD}; letter-spacing:3px; font-weight:bold; margin-top:10px;'>INTELLIGENCE</h3>", unsafe_allow_html=True)
     st.markdown("---")
-    # News Feed (Full Height)
     components.html(f"""
         <iframe src="https://www.tradingview.com/embed-widget/timeline/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
         width="100%" height="1000" frameborder="0"></iframe>
     """, height=1000)
 
-# --- 4. TOP TICKER TAPE ---
-components.html(f"""
-    <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true" 
-    width="100%" height="50" frameborder="0"></iframe>
-""", height=50)
-
-# --- 5. SUB-HEADER (Status) ---
+# --- 5. SUB-HEADER (Status & Welkom) ---
 c1, c2 = st.columns([3, 1])
 with c1:
-    st.markdown(f"<p style='color:{BRAND_GOLD}; font-size:1.1rem;'>Premium Institutional Investment Interface</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:{BRAND_GOLD}; font-size:1rem; margin-top:10px;'>Institutional Portfolio Interface | {datetime.now().strftime('%d %b %Y')}</p>", unsafe_allow_html=True)
 with c2:
-    st.markdown(f"<div style='text-align:right;'><h2>{datetime.now().strftime('%H:%M')}</h2><p style='color:#00ff88;'>● MARKETS LIVE</p></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:right;'><p style='color:#00ff88; margin-top:10px;'>● TERMINAL LIVE</p></div>", unsafe_allow_html=True)
 
-# --- 6. ASSETS DATA ---
+# --- 6. DATASET ---
 equities = [
     {"n": "Apple", "s": "NASDAQ:AAPL"}, {"n": "Microsoft", "s": "NASDAQ:MSFT"},
     {"n": "Nvidia", "s": "NASDAQ:NVDA"}, {"n": "Alphabet", "s": "NASDAQ:GOOGL"},
