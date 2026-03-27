@@ -123,7 +123,6 @@ def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
         with cols[i % 3]:
-            # DE "DYNAMIC SRC" HACK - Geen CSS trucjes meer, gewoon de URL vervangen!
             card_html = f"""
             <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
                 
@@ -136,7 +135,7 @@ def render_portal_grid(asset_list, prefix):
                         ⏱️ TECHNICAL METER
                     </div>
                     <div id="tab_chart_{i}" onclick="loadChart_{i}()" style="flex:1; text-align:center; line-height:45px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
-                        📊 1Y CHART
+                        📊 PRO CHART
                     </div>
                 </div>
                 
@@ -149,11 +148,10 @@ def render_portal_grid(asset_list, prefix):
                 </div>
 
                 <script>
-                    // De twee TradingView URLs
+                    // DE UPGRADE: Volledige "Advanced Chart" in plaats van de mini-chart
                     var urlMeter_{i} = "https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D";
-                    var urlChart_{i} = "https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&dateRange=12M";
+                    var urlChart_{i} = "https://s.tradingview.com/widgetembed/?symbol={asset['s']}&interval=D&theme=dark&style=1&hidesidetoolbar=0&withdateranges=1&symboledit=0&toolbarbg=131722&hideideas=1";
                     
-                    // State tracker
                     var currentTab_{i} = 'meter';
 
                     function loadMeter_{i}() {{
@@ -161,7 +159,6 @@ def render_portal_grid(asset_list, prefix):
                             document.getElementById('dynamic_frame_{i}').src = urlMeter_{i};
                             currentTab_{i} = 'meter';
                         }}
-                        // Kleur update
                         document.getElementById('tab_meter_{i}').style.background = '#131722';
                         document.getElementById('tab_meter_{i}').style.color = '#B89B5E';
                         document.getElementById('tab_chart_{i}').style.background = '#0A1B2E';
@@ -173,7 +170,6 @@ def render_portal_grid(asset_list, prefix):
                             document.getElementById('dynamic_frame_{i}').src = urlChart_{i};
                             currentTab_{i} = 'chart';
                         }}
-                        // Kleur update
                         document.getElementById('tab_chart_{i}').style.background = '#131722';
                         document.getElementById('tab_chart_{i}').style.color = '#B89B5E';
                         document.getElementById('tab_meter_{i}').style.background = '#0A1B2E';
