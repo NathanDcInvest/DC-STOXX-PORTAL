@@ -14,9 +14,9 @@ if 'page' not in st.session_state:
 # --- 2. HET VISUELE STYLING BLOK ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder de fysieke ruimte boven het logo volledig */
+    /* 2A. Verwijder de Streamlit Header volledig */
     [data-testid="stHeader"] {{
-        display: none;
+        display: none !important;
     }}
     
     .stApp {{
@@ -24,51 +24,49 @@ st.markdown(f"""
         color: white;
     }}
     
-    /* 2B. Sidebar Styling */
+    /* 2B. Sidebar Styling (De witte balk links) */
     [data-testid="stSidebar"] {{
         background-color: #FFFFFF !important;
         border-right: 2px solid {BRAND_GOLD};
         min-width: 320px !important;
     }}
     
-    /* Zorg dat alle tekst in de sidebar navy blijft */
     [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] p {{
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen Fix (Geen blauwe waas meer bij klik) */
+    /* 2C. Sidebar Knoppen: ALTIJD WIT + ENLARGE EFFECT */
     div.stButton > button {{
         width: 100% !important;
-        background-color: white !important;
-        color: {BRAND_NAVY} !important;
+        background-color: white !important; /* Altijd wit */
+        color: {BRAND_NAVY} !important;    /* Altijd navy tekst */
         border: 2px solid {BRAND_NAVY} !important;
         border-radius: 10px !important;
         font-weight: bold !important;
         font-size: 1.1rem !important;
         padding: 12px 15px !important;
+        transition: transform 0.2s ease-in-out, border-color 0.2s !important; /* Voor het enlarge effect */
         display: block !important;
     }}
 
-    /* Forceer kleuren bij hover, focus en actieve klik om Streamlit-blauw te blokkeren */
+    /* Hover effect: Box enlargen, kleur blijft wit */
     div.stButton > button:hover {{
-        background-color: {BRAND_NAVY} !important;
-        color: {BRAND_GOLD} !important;
-        border-color: {BRAND_GOLD} !important;
-    }}
-
-    div.stButton > button:focus:not(:active) {{
+        transform: scale(1.05) !important; /* Maakt de knop 5% groter */
         background-color: white !important;
         color: {BRAND_NAVY} !important;
-        border-color: {BRAND_NAVY} !important;
-        box-shadow: none !important;
-    }}
-    
-    div.stButton > button:active {{
-        background-color: {BRAND_GOLD} !important;
-        color: {BRAND_NAVY} !important;
+        border-color: {BRAND_GOLD} !important; /* Alleen de rand wordt goud voor feedback */
     }}
 
-    /* 2D. De Witte Top Header (Nu echt strak tegen de bovenkant) */
+    /* Voorkom Streamlit Blauw bij focus/klik */
+    div.stButton > button:focus, div.stButton > button:active, div.stButton > button:focus-visible {{
+        background-color: white !important;
+        color: {BRAND_NAVY} !important;
+        border-color: {BRAND_GOLD} !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }}
+
+    /* 2D. De Witte Top Header (Strak tegen de rand) */
     .white-top-header {{
         background-color: #FFFFFF;
         width: 100%;
@@ -77,7 +75,7 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -75px; /* Schuift de balk volledig naar boven */
+        margin-top: -65px; /* Schuift het logo-blok over de lege header ruimte */
     }}
 
     .main .block-container {{
@@ -85,7 +83,7 @@ st.markdown(f"""
         max-width: 95%;
     }}
 
-    /* Sidebar toggle knop donker maken */
+    /* Sidebar toggle knop styling */
     button[data-testid="stSidebarCollapseButton"] {{
         color: {BRAND_NAVY} !important;
         background-color: white !important;
@@ -100,6 +98,7 @@ with st.sidebar:
     st.markdown(f"<p style='text-align:center; color:{BRAND_GOLD}; font-weight:bold; letter-spacing: 2px;'>MASTER TERMINAL</p>", unsafe_allow_html=True)
     st.markdown("---")
     
+    # Knoppen met de nieuwe 'enlarge' styling
     if st.button("📈 Equities"): st.session_state.page = "📈 Equities"
     if st.button("₿ Crypto"): st.session_state.page = "₿ Crypto"
     if st.button("🛢️ Commodities"): st.session_state.page = "🛢️ Commodities & Oil"
@@ -124,7 +123,7 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Hoogte aangepast naar 62px: de gulden middenweg)
+# Ticker Tape (Hoogte op 62px: ideaal voor leesbaarheid zonder bulk)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
     width="100%" height="62" frameborder="0" style="display:block; margin:0;"></iframe>
@@ -139,49 +138,10 @@ def render_portal_grid(asset_list, prefix):
     for i, asset in enumerate(asset_list):
         unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
-            # Hover logic fix voor stabielere charts
             card_html = f"""
             <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:520px; overflow:hidden; margin-bottom:25px; position:relative; cursor:pointer;"
                  onmouseover="this.querySelector('.static').style.display='none'; this.querySelector('.chart').style.display='block';"
                  onmouseout="this.querySelector('.static').style.display='block'; this.querySelector('.chart').style.display='none';">
                 
                 <div class="static" style="display:block; height:100%;">
-                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0"></iframe>
-                    <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0"></iframe>
-                </div>
-                
-                <div class="chart" style="display:none; height:100%;">
-                    <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
-                </div>
-            </div>
-            """
-            components.html(card_html, height=530)
-
-# Assets
-equities_list = [
-    {"n": "Apple", "s": "NASDAQ:AAPL"}, {"n": "Microsoft", "s": "NASDAQ:MSFT"},
-    {"n": "Nvidia", "s": "NASDAQ:NVDA"}, {"n": "Alphabet", "s": "NASDAQ:GOOGL"},
-    {"n": "Amazon", "s": "NASDAQ:AMZN"}, {"n": "Meta", "s": "NASDAQ:META"},
-    {"n": "Tesla", "s": "NASDAQ:TSLA"}, {"n": "Berkshire", "s": "NYSE:BRK.B"},
-    {"n": "Eli Lilly", "s": "NYSE:LLY"}, {"n": "Visa", "s": "NYSE:V"},
-    {"n": "JPMorgan", "s": "NYSE:JPM"}, {"n": "TSMC", "s": "NYSE:TSM"},
-    {"n": "UnitedHealth", "s": "NYSE:UNH"}, {"n": "Mastercard", "s": "NYSE:MA"},
-    {"n": "Broadcom", "s": "NASDAQ:AVGO"}, {"n": "Home Depot", "s": "NYSE:HD"},
-    {"n": "P&G", "s": "NYSE:PG"}, {"n": "Costco", "s": "NASDAQ:COST"},
-    {"n": "J&J", "s": "NYSE:JNJ"}, {"n": "Salesforce", "s": "NYSE:CRM"},
-    {"n": "AMD", "s": "NASDAQ:AMD"}, {"n": "Netflix", "s": "NASDAQ:NFLX"}
-]
-
-if st.session_state.page == "📈 Equities":
-    render_portal_grid(equities_list, "eq")
-
-elif st.session_state.page == "₿ Crypto":
-    crypto_list = [{"n": "Bitcoin", "s": "BINANCE:BTCUSDT"}, {"n": "Ethereum", "s": "BINANCE:ETHUSDT"}, {"n": "Solana", "s": "BINANCE:SOLUSDT"}]
-    render_portal_grid(crypto_list, "cry")
-
-elif st.session_state.page == "🛢️ Commodities & Oil":
-    commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
-    render_portal_grid(commodities_list, "com")
-
-elif st.session_state.page == "📊 Heat Map":
-    components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="650" frameborder="0"></iframe>', height=670)
+                    <iframe src="https
