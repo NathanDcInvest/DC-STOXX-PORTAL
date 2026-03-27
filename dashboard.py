@@ -151,7 +151,6 @@ def render_portal_grid(asset_list, prefix):
                     var urlChart_{i} = "https://s.tradingview.com/widgetembed/?symbol={asset['s']}&interval=D&theme=dark&style=1&hidesidetoolbar=0&withdateranges=1&symboledit=0&toolbarbg=131722&hideideas=1";
                     var urlMeter_{i} = "https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D";
                     
-                    // State tracker start nu op 'chart'
                     var currentTab_{i} = 'chart';
 
                     function loadChart_{i}() {{
@@ -204,4 +203,7 @@ elif st.session_state.page == "🛢️ Commodities & Oil":
     commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
     render_portal_grid(commodities_list, "com")
 elif st.session_state.page == "📊 Heat Map":
-    components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="650" frameborder="0"></iframe>', height=670)
+    # NIEUWE LOGICA: Centreren in een 1-5-1 kolom verhouding + Hoogte naar 850px voor perfecte kubus
+    c_links, c_heatmap, c_rechts = st.columns([1, 5, 1])
+    with c_heatmap:
+        components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="850" frameborder="0"></iframe>', height=870)
