@@ -38,27 +38,27 @@ st.markdown(f"""
     /* 2C. Sidebar Knoppen: ALTIJD WIT + ENLARGE EFFECT */
     div.stButton > button {{
         width: 100% !important;
-        background-color: white !important; /* Altijd wit */
-        color: {BRAND_NAVY} !important;    /* Altijd navy tekst */
+        background-color: white !important;
+        color: {BRAND_NAVY} !important;
         border: 2px solid {BRAND_NAVY} !important;
         border-radius: 10px !important;
         font-weight: bold !important;
         font-size: 1.1rem !important;
         padding: 12px 15px !important;
-        transition: transform 0.2s ease-in-out, border-color 0.2s !important; /* Voor het enlarge effect */
+        transition: transform 0.2s ease-in-out, border-color 0.2s !important;
         display: block !important;
     }}
 
-    /* Hover effect: Box enlargen, kleur blijft wit */
+    /* Hover effect: Subtiel enlargen (1.03), kleur blijft wit */
     div.stButton > button:hover {{
-        transform: scale(1.05) !important; /* Maakt de knop 5% groter */
+        transform: scale(1.03) !important;
         background-color: white !important;
         color: {BRAND_NAVY} !important;
-        border-color: {BRAND_GOLD} !important; /* Alleen de rand wordt goud voor feedback */
+        border-color: {BRAND_GOLD} !important;
     }}
 
-    /* Voorkom Streamlit Blauw bij focus/klik */
-    div.stButton > button:focus, div.stButton > button:active, div.stButton > button:focus-visible {{
+    /* Blokkeer Streamlit Blauw bij klik */
+    div.stButton > button:focus, div.stButton > button:active {{
         background-color: white !important;
         color: {BRAND_NAVY} !important;
         border-color: {BRAND_GOLD} !important;
@@ -75,7 +75,7 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -65px; /* Schuift het logo-blok over de lege header ruimte */
+        margin-top: -85px; /* Schuift de balk volledig over de verborgen header */
     }}
 
     .main .block-container {{
@@ -98,22 +98,18 @@ with st.sidebar:
     st.markdown(f"<p style='text-align:center; color:{BRAND_GOLD}; font-weight:bold; letter-spacing: 2px;'>MASTER TERMINAL</p>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # Knoppen met de nieuwe 'enlarge' styling
     if st.button("📈 Equities"): st.session_state.page = "📈 Equities"
     if st.button("₿ Crypto"): st.session_state.page = "₿ Crypto"
     if st.button("🛢️ Commodities"): st.session_state.page = "🛢️ Commodities & Oil"
     if st.button("📊 Heat Map"): st.session_state.page = "📊 Heat Map"
     
     st.markdown("---")
-    st.markdown(f"<p style='font-weight:bold; color:{BRAND_NAVY};'>MARKET INTELLIGENCE</p>", unsafe_allow_html=True)
-    
     components.html("""
         <iframe src="https://www.tradingview.com/embed-widget/timeline/?colorTheme=light&isTransparent=true&displayMode=adaptive" 
         width="100%" height="800" frameborder="0"></iframe>
     """, height=800)
 
 # --- 4. TOP HEADER & TICKER ---
-# Witte balk met Logo
 st.markdown('<div class="white-top-header">', unsafe_allow_html=True)
 c1, c_logo, c2 = st.columns([1, 0.7, 1])
 with c_logo:
@@ -123,11 +119,11 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Hoogte op 62px: ideaal voor leesbaarheid zonder bulk)
+# Ticker Tape (Gereduceerd naar 58px: perfecte balans)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
-    width="100%" height="62" frameborder="0" style="display:block; margin:0;"></iframe>
-""", height=62)
+    width="100%" height="58" frameborder="0" style="display:block; margin:0;"></iframe>
+""", height=58)
 
 # --- 5. MAIN CONTENT ---
 st.title(f"{st.session_state.page}")
@@ -138,24 +134,35 @@ def render_portal_grid(asset_list, prefix):
     for i, asset in enumerate(asset_list):
         unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
+            # FIX: We gebruiken opacity in plaats van display:none zodat de chart op de achtergrond laadt
             card_html = f"""
-            <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:520px; overflow:hidden; margin-bottom:25px; position:relative; cursor:pointer;"
-                 onmouseover="this.querySelector('.static').style.display='none'; this.querySelector('.chart').style.display='block';"
-                 onmouseout="this.querySelector('.static').style.display='block'; this.querySelector('.chart').style.display='none';">
-                
-                <div class="static" style="display:block; height:100%;">
+            <style>
+                .asset-container {{
+                    background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; 
+                    height:520px; overflow:hidden; margin-bottom:25px; position:relative; cursor:pointer;
+                }}
+                .static-view, .chart-view {{
+                    position: absolute; width: 100%; height: 100%; 
+                    top: 0; left: 0; transition: opacity 0.4s ease;
+                }}
+                .chart-view {{ opacity: 0; pointer-events: none; }}
+                .asset-container:hover .static-view {{ opacity: 0; pointer-events: none; }}
+                .asset-container:hover .chart-view {{ opacity: 1; pointer-events: auto; }}
+            </style>
+            
+            <div class="asset-container">
+                <div class="static-view">
                     <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0"></iframe>
                     <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0"></iframe>
                 </div>
-                
-                <div class="chart" style="display:none; height:100%;">
+                <div class="chart-view">
                     <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
                 </div>
             </div>
             """
             components.html(card_html, height=530)
 
-# Assets (Hetzelfde gebleven)
+# Assets
 equities_list = [
     {"n": "Apple", "s": "NASDAQ:AAPL"}, {"n": "Microsoft", "s": "NASDAQ:MSFT"},
     {"n": "Nvidia", "s": "NASDAQ:NVDA"}, {"n": "Alphabet", "s": "NASDAQ:GOOGL"},
