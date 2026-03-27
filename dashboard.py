@@ -32,7 +32,7 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DE VOLLEDIGE DATASET (27 Assets) ---
+# --- 2. DE VOLLEDIGE DATASET ---
 equities = [
     {"n": "Apple", "s": "NASDAQ:AAPL"}, {"n": "Microsoft", "s": "NASDAQ:MSFT"},
     {"n": "Nvidia", "s": "NASDAQ:NVDA"}, {"n": "Alphabet", "s": "NASDAQ:GOOGL"},
@@ -60,7 +60,6 @@ with st.sidebar:
         st.title("DC STOXX")
     st.markdown(f"<p style='text-align:center; color:{BRAND_GOLD}; letter-spacing:3px; font-weight:bold;'>INTELLIGENCE</p>", unsafe_allow_html=True)
     st.markdown("---")
-    # News Feed (Langer gemaakt om dead space te vullen)
     components.html(f"""
         <iframe src="https://www.tradingview.com/embed-widget/timeline/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
         width="100%" height="1000" frameborder="0"></iframe>
@@ -80,12 +79,12 @@ with c1:
 with c2:
     st.markdown(f"<div style='text-align:right;'><h2>{datetime.now().strftime('%H:%M')}</h2><p style='color:#00ff88;'>● MARKETS LIVE</p></div>", unsafe_allow_html=True)
 
-# --- 6. PORTAL NAVIGATION ---
-tab_overview, tab_equities, tab_crypto, tab_screener = st.tabs([
-    "📊 Market Overview", "📈 Equities", "₿ Crypto & Commodities", "🔍 Pro Screener"
+# --- 6. PORTAL NAVIGATION (Volgorde aangepast: Equities nu als eerste) ---
+tab_equities, tab_overview, tab_crypto, tab_screener = st.tabs([
+    "📈 Equities", "📊 Market Overview", "₿ Crypto & Commodities", "🔍 Pro Screener"
 ])
 
-# Functie voor de Hover Cards (Boxen volledig gevuld)
+# Functie voor de Hover Cards
 def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
@@ -124,6 +123,9 @@ def render_portal_grid(asset_list, prefix):
             components.html(card_html, height=560)
 
 # --- TAB LOGICA ---
+with tab_equities:
+    render_portal_grid(equities, "eq")
+
 with tab_overview:
     col_l, col_r = st.columns([2, 1])
     with col_l:
@@ -132,9 +134,6 @@ with tab_overview:
     with col_r:
         st.subheader("Global Indices")
         components.html('<iframe src="https://www.tradingview.com/embed-widget/markets/?colorTheme=dark&isTransparent=true" width="100%" height="600" frameborder="0"></iframe>', height=620)
-
-with tab_equities:
-    render_portal_grid(equities, "eq")
 
 with tab_crypto:
     render_portal_grid(others, "cry")
