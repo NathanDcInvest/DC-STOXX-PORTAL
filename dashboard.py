@@ -15,7 +15,7 @@ if 'page' not in st.session_state:
 st.markdown(f"""
     <style>
     /* 2A. Verwijder ELKE vorm van witte balk boven het logo definitief */
-    header[data-testid="stHeader"] {{
+    header[data-testid="stHeader"], .st-emotion-cache-18ni73i, .st-emotion-cache-v698uo {{
         display: none !important;
         height: 0px !important;
         visibility: hidden !important;
@@ -123,7 +123,7 @@ def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
         with cols[i % 3]:
-            # FIX: Z-index stacking & grotere box (600px)
+            # DE DEFINITIEVE "CAROUSEL" HACK VOOR TRADINGVIEW WIDGETS
             card_html = f"""
             <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
                 
@@ -131,7 +131,7 @@ def render_portal_grid(asset_list, prefix):
                     <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0" scrolling="no"></iframe>
                 </div>
                 
-                <div style="display:flex; height:45px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E;">
+                <div style="display:flex; height:45px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E; z-index: 10;">
                     <div id="tab_meter_{i}" onclick="showMeter_{i}()" style="flex:1; text-align:center; line-height:45px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
                         ⏱️ TECHNICAL METER
                     </div>
@@ -142,19 +142,22 @@ def render_portal_grid(asset_list, prefix):
                 
                 <div style="position:relative; flex:1; width:100%; overflow:hidden;">
                     
-                    <div id="content_chart_{i}" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
-                        <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
-                    </div>
-                    
-                    <div id="content_meter_{i}" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:2; background:#131722; transition: opacity 0.3s ease;">
-                        <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                    <div id="slider_track_{i}" style="display: flex; width: 200%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateX(0);">
+                        
+                        <div style="width: 50%; height: 100%;">
+                            <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                        </div>
+                        
+                        <div style="width: 50%; height: 100%;">
+                            <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                        </div>
+                        
                     </div>
                 </div>
 
                 <script>
                     function showMeter_{i}() {{
-                        document.getElementById('content_meter_{i}').style.opacity = '1';
-                        document.getElementById('content_meter_{i}').style.pointerEvents = 'auto';
+                        document.getElementById('slider_track_{i}').style.transform = 'translateX(0)';
                         
                         document.getElementById('tab_meter_{i}').style.background = '#131722';
                         document.getElementById('tab_meter_{i}').style.color = '#B89B5E';
@@ -162,8 +165,7 @@ def render_portal_grid(asset_list, prefix):
                         document.getElementById('tab_chart_{i}').style.color = '#8892B0';
                     }}
                     function showChart_{i}() {{
-                        document.getElementById('content_meter_{i}').style.opacity = '0';
-                        document.getElementById('content_meter_{i}').style.pointerEvents = 'none';
+                        document.getElementById('slider_track_{i}').style.transform = 'translateX(-50%)';
                         
                         document.getElementById('tab_chart_{i}').style.background = '#131722';
                         document.getElementById('tab_chart_{i}').style.color = '#B89B5E';
@@ -173,7 +175,6 @@ def render_portal_grid(asset_list, prefix):
                 </script>
             </div>
             """
-            # Totale iframe hoogte ruim genoeg maken (620px)
             components.html(card_html, height=620)
 
 # Assets
