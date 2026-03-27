@@ -5,13 +5,15 @@ from datetime import datetime
 # --- 1. CONFIG & SESSION STATE ---
 BRAND_GOLD = "#B89B5E"
 BRAND_NAVY = "#0A1B2E"
+# De nieuwe achtergrondkleur voor de boxen (een heel subtiel gebroken wit/grijs voor contrast met de pure witte achtergrond)
+BOX_BG = "#F8F9FA" 
 
 st.set_page_config(page_title="DC STOXX Portal", layout="wide", initial_sidebar_state="expanded")
 
 if 'page' not in st.session_state:
     st.session_state.page = "📈 Equities"
 
-# --- 2. HET VISUELE STYLING BLOK ---
+# --- 2. HET VISUELE STYLING BLOK (Aangepast voor Witte Achtergrond) ---
 st.markdown(f"""
     <style>
     /* 2A. Verwijder ELKE vorm van witte balk boven het logo definitief */
@@ -21,9 +23,10 @@ st.markdown(f"""
         visibility: hidden !important;
     }}
     
+    /* ZET DE HOOFD ACHTERGROND NAAR WIT EN DE TEKST NAAR NAVY */
     .stApp {{
-        background-color: {BRAND_NAVY};
-        color: white;
+        background-color: #FFFFFF;
+        color: {BRAND_NAVY};
     }}
     
     /* 2B. Sidebar Styling */
@@ -53,8 +56,8 @@ st.markdown(f"""
 
     div.stButton > button:hover, div.stButton > button:focus, div.stButton > button:active {{
         transform: scale(1.05) !important; 
-        background-color: white !important; 
-        color: {BRAND_NAVY} !important;    
+        background-color: {BRAND_NAVY} !important; 
+        color: white !important;    
         border-color: {BRAND_GOLD} !important;
         box-shadow: none !important;
         outline: none !important;
@@ -79,6 +82,11 @@ st.markdown(f"""
         margin-top: 0rem !important;
         max-width: 95%;
     }}
+
+    /* Maak titels Navy */
+    h1, h2, h3, h4, h5, h6 {{
+        color: {BRAND_NAVY} !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -94,6 +102,7 @@ with st.sidebar:
     if st.button("📊 Heat Map"): st.session_state.page = "📊 Heat Map"
     
     st.markdown("---")
+    # Timeline is al light theme
     components.html("""
         <iframe src="https://www.tradingview.com/embed-widget/timeline/?colorTheme=light&isTransparent=true&displayMode=adaptive" 
         width="100%" height="800" frameborder="0"></iframe>
@@ -109,9 +118,9 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape
+# Ticker Tape (Opgeschakeld naar Light Theme)
 components.html("""
-    <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
+    <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=light&isTransparent=true&displayMode=adaptive" 
     width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
 """, height=60)
 
@@ -123,33 +132,35 @@ def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
         with cols[i % 3]:
+            # CSS voor de lichte box
             card_html = f"""
-            <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+            <div style="background:{BOX_BG}; border:1px solid {BRAND_GOLD}; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 
                 <div style="height:160px; width:100%;">
-                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0" scrolling="no"></iframe>
+                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=light&isTransparent=true" width="100%" height="160" frameborder="0" scrolling="no"></iframe>
                 </div>
                 
-                <div style="display:flex; height:45px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E; z-index: 10;">
-                    <div id="tab_chart_{i}" onclick="loadChart_{i}()" style="flex:1; text-align:center; line-height:45px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
+                <div style="display:flex; height:45px; border-top:1px solid {BRAND_GOLD}; border-bottom:1px solid {BRAND_GOLD}; background:#FFFFFF; z-index: 10;">
+                    <div id="tab_chart_{i}" onclick="loadChart_{i}()" style="flex:1; text-align:center; line-height:45px; color:#FFFFFF; background:{BRAND_NAVY}; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s; border-right:1px solid {BRAND_GOLD};">
                         📊 CHART
                     </div>
-                    <div id="tab_meter_{i}" onclick="loadMeter_{i}()" style="flex:1; text-align:center; line-height:45px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
+                    <div id="tab_meter_{i}" onclick="loadMeter_{i}()" style="flex:1; text-align:center; line-height:45px; color:{BRAND_NAVY}; background:#FFFFFF; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
                         ⏱️ TECHNICAL METER
                     </div>
                 </div>
                 
                 <div style="position:relative; flex:1; width:100%;">
-                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#8892B0; font-family:sans-serif; font-size:12px; z-index:0;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:{BRAND_NAVY}; font-family:sans-serif; font-size:12px; z-index:0;">
                         Loading Data...
                     </div>
                     
-                    <iframe id="dynamic_frame_{i}" src="https://s.tradingview.com/widgetembed/?symbol={asset['s']}&interval=D&theme=dark&style=1&hidesidetoolbar=0&withdateranges=1&symboledit=0&toolbarbg=131722&hideideas=1" width="100%" height="100%" frameborder="0" scrolling="no" style="position:relative; z-index:1; background:#131722;"></iframe>
+                    <iframe id="dynamic_frame_{i}" src="https://s.tradingview.com/widgetembed/?symbol={asset['s']}&interval=D&theme=light&style=1&hidesidetoolbar=0&withdateranges=1&symboledit=0&toolbarbg=F8F9FA&hideideas=1" width="100%" height="100%" frameborder="0" scrolling="no" style="position:relative; z-index:1; background:{BOX_BG};"></iframe>
                 </div>
 
                 <script>
-                    var urlChart_{i} = "https://s.tradingview.com/widgetembed/?symbol={asset['s']}&interval=D&theme=dark&style=1&hidesidetoolbar=0&withdateranges=1&symboledit=0&toolbarbg=131722&hideideas=1";
-                    var urlMeter_{i} = "https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D";
+                    // Update de URL's naar 'light' themes
+                    var urlChart_{i} = "https://s.tradingview.com/widgetembed/?symbol={asset['s']}&interval=D&theme=light&style=1&hidesidetoolbar=0&withdateranges=1&symboledit=0&toolbarbg=F8F9FA&hideideas=1";
+                    var urlMeter_{i} = "https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=light&isTransparent=true&interval=1D";
                     
                     var currentTab_{i} = 'chart';
 
@@ -158,10 +169,10 @@ def render_portal_grid(asset_list, prefix):
                             document.getElementById('dynamic_frame_{i}').src = urlChart_{i};
                             currentTab_{i} = 'chart';
                         }}
-                        document.getElementById('tab_chart_{i}').style.background = '#131722';
-                        document.getElementById('tab_chart_{i}').style.color = '#B89B5E';
-                        document.getElementById('tab_meter_{i}').style.background = '#0A1B2E';
-                        document.getElementById('tab_meter_{i}').style.color = '#8892B0';
+                        document.getElementById('tab_chart_{i}').style.background = '{BRAND_NAVY}';
+                        document.getElementById('tab_chart_{i}').style.color = '#FFFFFF';
+                        document.getElementById('tab_meter_{i}').style.background = '#FFFFFF';
+                        document.getElementById('tab_meter_{i}').style.color = '{BRAND_NAVY}';
                     }}
 
                     function loadMeter_{i}() {{
@@ -169,10 +180,10 @@ def render_portal_grid(asset_list, prefix):
                             document.getElementById('dynamic_frame_{i}').src = urlMeter_{i};
                             currentTab_{i} = 'meter';
                         }}
-                        document.getElementById('tab_meter_{i}').style.background = '#131722';
-                        document.getElementById('tab_meter_{i}').style.color = '#B89B5E';
-                        document.getElementById('tab_chart_{i}').style.background = '#0A1B2E';
-                        document.getElementById('tab_chart_{i}').style.color = '#8892B0';
+                        document.getElementById('tab_meter_{i}').style.background = '{BRAND_NAVY}';
+                        document.getElementById('tab_meter_{i}').style.color = '#FFFFFF';
+                        document.getElementById('tab_chart_{i}').style.background = '#FFFFFF';
+                        document.getElementById('tab_chart_{i}').style.color = '{BRAND_NAVY}';
                     }}
                 </script>
             </div>
@@ -203,7 +214,7 @@ elif st.session_state.page == "🛢️ Commodities & Oil":
     commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
     render_portal_grid(commodities_list, "com")
 elif st.session_state.page == "📊 Heat Map":
-    # NIEUWE LOGICA: Centreren in een 1-5-1 kolom verhouding + Hoogte naar 850px voor perfecte kubus
+    # Heatmap overgeschakeld naar Light Theme
     c_links, c_heatmap, c_rechts = st.columns([1, 5, 1])
     with c_heatmap:
-        components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="850" frameborder="0"></iframe>', height=870)
+        components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=light&isTransparent=true&index=SPX500" width="100%" height="850" frameborder="0"></iframe>', height=870)
