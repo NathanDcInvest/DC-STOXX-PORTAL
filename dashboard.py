@@ -14,7 +14,7 @@ if 'page' not in st.session_state:
 # --- 2. HET VISUELE STYLING BLOK ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder de Streamlit Header volledig */
+    /* 2A. Verwijder de Streamlit Header volledig (Geen witte balk meer) */
     [data-testid="stHeader"] {{
         display: none !important;
     }}
@@ -45,11 +45,11 @@ st.markdown(f"""
         font-weight: bold !important;
         font-size: 1.1rem !important;
         padding: 12px 15px !important;
-        transition: transform 0.2s ease-in-out, border-color 0.2s !important;
+        transition: transform 0.2s ease, border-color 0.2s !important;
         display: block !important;
     }}
 
-    /* Hover effect: Subtiel enlargen (1.03), kleur blijft wit */
+    /* Hover effect: Subtiel enlargen, kleur blijft wit, GEEN donkerblauw */
     div.stButton > button:hover {{
         transform: scale(1.03) !important;
         background-color: white !important;
@@ -57,8 +57,10 @@ st.markdown(f"""
         border-color: {BRAND_GOLD} !important;
     }}
 
-    /* Blokkeer Streamlit Blauw bij klik */
-    div.stButton > button:focus, div.stButton > button:active {{
+    /* Voorkom dat Streamlit de knop donkerblauw maakt bij klik of selectie */
+    div.stButton > button:focus, 
+    div.stButton > button:active,
+    div.stButton > button:focus-visible {{
         background-color: white !important;
         color: {BRAND_NAVY} !important;
         border-color: {BRAND_GOLD} !important;
@@ -75,7 +77,7 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -85px; /* Schuift de balk volledig over de verborgen header */
+        margin-top: -85px; /* Trekt de balk over de verborgen Streamlit ruimte */
     }}
 
     .main .block-container {{
@@ -119,11 +121,11 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Gereduceerd naar 58px: perfecte balans)
+# Ticker Tape (Hoogte aangepast naar 60px: precies wat je vroeg)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
-    width="100%" height="58" frameborder="0" style="display:block; margin:0;"></iframe>
-""", height=58)
+    width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
+""", height=60)
 
 # --- 5. MAIN CONTENT ---
 st.title(f"{st.session_state.page}")
@@ -134,29 +136,32 @@ def render_portal_grid(asset_list, prefix):
     for i, asset in enumerate(asset_list):
         unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
-            # FIX: We gebruiken opacity in plaats van display:none zodat de chart op de achtergrond laadt
+            # DE "PRE-LOAD" HOVER LOGICA
+            # Beide views zijn geladen, we switchen alleen de Z-INDEX en OPACITY
             card_html = f"""
             <style>
-                .asset-container {{
+                .asset-card {{
                     background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; 
                     height:520px; overflow:hidden; margin-bottom:25px; position:relative; cursor:pointer;
                 }}
-                .static-view, .chart-view {{
-                    position: absolute; width: 100%; height: 100%; 
-                    top: 0; left: 0; transition: opacity 0.4s ease;
+                .view-layer {{
+                    position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+                    transition: opacity 0.3s ease-in-out;
                 }}
-                .chart-view {{ opacity: 0; pointer-events: none; }}
-                .asset-container:hover .static-view {{ opacity: 0; pointer-events: none; }}
-                .asset-container:hover .chart-view {{ opacity: 1; pointer-events: auto; }}
+                .static-view {{ z-index: 2; opacity: 1; }}
+                .chart-view {{ z-index: 1; opacity: 1; }} /* Altijd op opacity 1 zodat hij laadt! */
+                
+                .asset-card:hover .static-view {{ opacity: 0; z-index: 1; }}
+                .asset-card:hover .chart-view {{ z-index: 2; }}
             </style>
             
-            <div class="asset-container">
+            <div class="asset-card">
+                <div class="chart-view">
+                    <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
                 <div class="static-view">
                     <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0"></iframe>
                     <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0"></iframe>
-                </div>
-                <div class="chart-view">
-                    <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
                 </div>
             </div>
             """
