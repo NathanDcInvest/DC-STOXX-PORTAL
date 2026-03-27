@@ -123,7 +123,7 @@ def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
         with cols[i % 3]:
-            # DE DEFINITIEVE "CAROUSEL" HACK VOOR TRADINGVIEW WIDGETS
+            # DE "DYNAMIC SRC" HACK - Geen CSS trucjes meer, gewoon de URL vervangen!
             card_html = f"""
             <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
                 
@@ -132,41 +132,48 @@ def render_portal_grid(asset_list, prefix):
                 </div>
                 
                 <div style="display:flex; height:45px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E; z-index: 10;">
-                    <div id="tab_meter_{i}" onclick="showMeter_{i}()" style="flex:1; text-align:center; line-height:45px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
+                    <div id="tab_meter_{i}" onclick="loadMeter_{i}()" style="flex:1; text-align:center; line-height:45px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
                         ⏱️ TECHNICAL METER
                     </div>
-                    <div id="tab_chart_{i}" onclick="showChart_{i}()" style="flex:1; text-align:center; line-height:45px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
+                    <div id="tab_chart_{i}" onclick="loadChart_{i}()" style="flex:1; text-align:center; line-height:45px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
                         📊 1Y CHART
                     </div>
                 </div>
                 
-                <div style="position:relative; flex:1; width:100%; overflow:hidden;">
-                    
-                    <div id="slider_track_{i}" style="display: flex; width: 200%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateX(0);">
-                        
-                        <div style="width: 50%; height: 100%;">
-                            <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
-                        </div>
-                        
-                        <div style="width: 50%; height: 100%;">
-                            <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
-                        </div>
-                        
+                <div style="position:relative; flex:1; width:100%;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#8892B0; font-family:sans-serif; font-size:12px; z-index:0;">
+                        Loading Data...
                     </div>
+                    
+                    <iframe id="dynamic_frame_{i}" src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="100%" frameborder="0" scrolling="no" style="position:relative; z-index:1; background:#131722;"></iframe>
                 </div>
 
                 <script>
-                    function showMeter_{i}() {{
-                        document.getElementById('slider_track_{i}').style.transform = 'translateX(0)';
-                        
+                    // De twee TradingView URLs
+                    var urlMeter_{i} = "https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D";
+                    var urlChart_{i} = "https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&dateRange=12M";
+                    
+                    // State tracker
+                    var currentTab_{i} = 'meter';
+
+                    function loadMeter_{i}() {{
+                        if (currentTab_{i} !== 'meter') {{
+                            document.getElementById('dynamic_frame_{i}').src = urlMeter_{i};
+                            currentTab_{i} = 'meter';
+                        }}
+                        // Kleur update
                         document.getElementById('tab_meter_{i}').style.background = '#131722';
                         document.getElementById('tab_meter_{i}').style.color = '#B89B5E';
                         document.getElementById('tab_chart_{i}').style.background = '#0A1B2E';
                         document.getElementById('tab_chart_{i}').style.color = '#8892B0';
                     }}
-                    function showChart_{i}() {{
-                        document.getElementById('slider_track_{i}').style.transform = 'translateX(-50%)';
-                        
+
+                    function loadChart_{i}() {{
+                        if (currentTab_{i} !== 'chart') {{
+                            document.getElementById('dynamic_frame_{i}').src = urlChart_{i};
+                            currentTab_{i} = 'chart';
+                        }}
+                        // Kleur update
                         document.getElementById('tab_chart_{i}').style.background = '#131722';
                         document.getElementById('tab_chart_{i}').style.color = '#B89B5E';
                         document.getElementById('tab_meter_{i}').style.background = '#0A1B2E';
