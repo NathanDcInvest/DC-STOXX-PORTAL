@@ -14,10 +14,9 @@ if 'page' not in st.session_state:
 # --- 2. HET VISUELE STYLING BLOK ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder de witte balk bovenaan (Streamlit Header) */
+    /* 2A. Verwijder de fysieke ruimte boven het logo volledig */
     [data-testid="stHeader"] {{
-        height: 0px;
-        background: rgba(0,0,0,0);
+        display: none;
     }}
     
     .stApp {{
@@ -32,33 +31,44 @@ st.markdown(f"""
         min-width: 320px !important;
     }}
     
+    /* Zorg dat alle tekst in de sidebar navy blijft */
     [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] p {{
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen Fix (Hover & Focus) */
+    /* 2C. Sidebar Knoppen Fix (Geen blauwe waas meer bij klik) */
     div.stButton > button {{
-        width: 100%;
+        width: 100% !important;
         background-color: white !important;
         color: {BRAND_NAVY} !important;
         border: 2px solid {BRAND_NAVY} !important;
         border-radius: 10px !important;
         font-weight: bold !important;
         font-size: 1.1rem !important;
-        transition: 0.3s !important;
-        text-align: left !important;
         padding: 12px 15px !important;
+        display: block !important;
     }}
 
-    /* De fix voor de onleesbare blauwe kleur bij hover/klik */
-    div.stButton > button:hover, div.stButton > button:focus, div.stButton > button:active {{
+    /* Forceer kleuren bij hover, focus en actieve klik om Streamlit-blauw te blokkeren */
+    div.stButton > button:hover {{
         background-color: {BRAND_NAVY} !important;
         color: {BRAND_GOLD} !important;
         border-color: {BRAND_GOLD} !important;
-        box-shadow: none !important;
     }}
 
-    /* 2D. De Witte Top Header (Direct tegen de bovenkant) */
+    div.stButton > button:focus:not(:active) {{
+        background-color: white !important;
+        color: {BRAND_NAVY} !important;
+        border-color: {BRAND_NAVY} !important;
+        box-shadow: none !important;
+    }}
+    
+    div.stButton > button:active {{
+        background-color: {BRAND_GOLD} !important;
+        color: {BRAND_NAVY} !important;
+    }}
+
+    /* 2D. De Witte Top Header (Nu echt strak tegen de bovenkant) */
     .white-top-header {{
         background-color: #FFFFFF;
         width: 100%;
@@ -67,7 +77,7 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -60px; /* Trekt de balk over de lege Streamlit ruimte */
+        margin-top: -75px; /* Schuift de balk volledig naar boven */
     }}
 
     .main .block-container {{
@@ -75,7 +85,7 @@ st.markdown(f"""
         max-width: 95%;
     }}
 
-    /* Sidebar toggle knop donker maken zodat hij opvalt op wit */
+    /* Sidebar toggle knop donker maken */
     button[data-testid="stSidebarCollapseButton"] {{
         color: {BRAND_NAVY} !important;
         background-color: white !important;
@@ -114,11 +124,11 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Hoger gemaakt: 75px voor betere leesbaarheid)
+# Ticker Tape (Hoogte aangepast naar 62px: de gulden middenweg)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
-    width="100%" height="75" frameborder="0" style="display:block; margin:0;"></iframe>
-""", height=75)
+    width="100%" height="62" frameborder="0" style="display:block; margin:0;"></iframe>
+""", height=62)
 
 # --- 5. MAIN CONTENT ---
 st.title(f"{st.session_state.page}")
@@ -129,7 +139,7 @@ def render_portal_grid(asset_list, prefix):
     for i, asset in enumerate(asset_list):
         unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
-            # De widgets laden nu betrouwbaarder via iframe direct
+            # Hover logic fix voor stabielere charts
             card_html = f"""
             <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:520px; overflow:hidden; margin-bottom:25px; position:relative; cursor:pointer;"
                  onmouseover="this.querySelector('.static').style.display='none'; this.querySelector('.chart').style.display='block';"
