@@ -14,8 +14,8 @@ if 'page' not in st.session_state:
 # --- 2. HET VISUELE STYLING BLOK ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder de Streamlit Header volledig */
-    [data-testid="stHeader"] {{
+    /* 2A. Verwijder de Streamlit Header en witruimte volledig */
+    [data-testid="stHeader"], .st-emotion-cache-18ni73i, .st-emotion-cache-v698uo {{
         display: none !important;
     }}
     
@@ -24,7 +24,7 @@ st.markdown(f"""
         color: white;
     }}
     
-    /* 2B. Sidebar Styling (De witte balk links) */
+    /* 2B. Sidebar Styling */
     [data-testid="stSidebar"] {{
         background-color: #FFFFFF !important;
         border-right: 2px solid {BRAND_GOLD};
@@ -35,7 +35,7 @@ st.markdown(f"""
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen: ALTIJD WIT + ENLARGE EFFECT */
+    /* 2C. Sidebar Knoppen Fix */
     div.stButton > button {{
         width: 100% !important;
         background-color: white !important;
@@ -45,19 +45,15 @@ st.markdown(f"""
         font-weight: bold !important;
         font-size: 1.1rem !important;
         padding: 12px 15px !important;
-        transition: transform 0.2s ease-in-out, border-color 0.2s !important;
+        transition: transform 0.2s ease !important;
         display: block !important;
     }}
 
-    /* Hover effect: Subtiel enlargen (1.03), kleur blijft wit */
     div.stButton > button:hover {{
-        transform: scale(1.03) !important;
-        background-color: white !important;
-        color: {BRAND_NAVY} !important;
+        transform: scale(1.02) !important;
         border-color: {BRAND_GOLD} !important;
     }}
 
-    /* Blokkeer Streamlit Blauw bij klik */
     div.stButton > button:focus, div.stButton > button:active {{
         background-color: white !important;
         color: {BRAND_NAVY} !important;
@@ -66,7 +62,7 @@ st.markdown(f"""
         outline: none !important;
     }}
 
-    /* 2D. De Witte Top Header (Strak tegen de rand) */
+    /* 2D. De Witte Top Header */
     .white-top-header {{
         background-color: #FFFFFF;
         width: 100%;
@@ -75,19 +71,12 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -85px; /* Schuift de balk volledig over de verborgen header */
+        margin-top: -100px; /* Agressief omhoog om witte balk te killen */
     }}
 
     .main .block-container {{
         padding-top: 0rem !important;
         max-width: 95%;
-    }}
-
-    /* Sidebar toggle knop styling */
-    button[data-testid="stSidebarCollapseButton"] {{
-        color: {BRAND_NAVY} !important;
-        background-color: white !important;
-        border: 1px solid {BRAND_GOLD} !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -119,44 +108,59 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Gereduceerd naar 58px: perfecte balans)
+# Ticker Tape (Precies 54px: strakker en beter passend)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
-    width="100%" height="58" frameborder="0" style="display:block; margin:0;"></iframe>
-""", height=58)
+    width="100%" height="54" frameborder="0" style="display:block; margin:0;"></iframe>
+""", height=54)
 
 # --- 5. MAIN CONTENT ---
 st.title(f"{st.session_state.page}")
-st.markdown(f"*{datetime.now().strftime('%d %B %Y')} - Institutional Data Feed*")
+st.markdown(f"*{datetime.now().strftime('%d %B %Y')} - Institutional Intelligence*")
 
 def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
         unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
-            # FIX: We gebruiken opacity in plaats van display:none zodat de chart op de achtergrond laadt
+            # DE "PRECISION" HOVER LOGICA
+            # We laden de chart ACHTER de meter (Pre-load).
+            # De hover trigger zit alleen op de 'trigger-zone' (bovenkant).
             card_html = f"""
             <style>
-                .asset-container {{
+                .asset-box {{
                     background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; 
-                    height:520px; overflow:hidden; margin-bottom:25px; position:relative; cursor:pointer;
+                    height:520px; overflow:hidden; margin-bottom:25px; position:relative;
                 }}
-                .static-view, .chart-view {{
-                    position: absolute; width: 100%; height: 100%; 
-                    top: 0; left: 0; transition: opacity 0.4s ease;
+                .layer {{
+                    position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+                    transition: opacity 0.3s ease;
                 }}
-                .chart-view {{ opacity: 0; pointer-events: none; }}
-                .asset-container:hover .static-view {{ opacity: 0; pointer-events: none; }}
-                .asset-container:hover .chart-view {{ opacity: 1; pointer-events: auto; }}
+                .chart-layer {{ z-index: 1; opacity: 1; }} /* Altijd op 1 zodat het laadt */
+                .gauge-layer {{ z-index: 2; opacity: 1; pointer-events: auto; }}
+                
+                /* De onzichtbare knop die de switch triggert (alleen bovenkant) */
+                .trigger-zone {{
+                    position: absolute; top: 0; left: 0; width: 100%; height: 160px;
+                    z-index: 10; cursor: pointer;
+                }}
+                
+                /* Wanneer je over de trigger-zone gaat, verdwijnt de meter */
+                .trigger-zone:hover ~ .gauge-layer {{
+                    opacity: 0; pointer-events: none;
+                }}
             </style>
             
-            <div class="asset-container">
-                <div class="static-view">
+            <div class="asset-box">
+                <div class="trigger-zone"></div>
+                
+                <div class="chart-layer">
+                    <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+                
+                <div class="gauge-layer">
                     <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0"></iframe>
                     <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0"></iframe>
-                </div>
-                <div class="chart-view">
-                    <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
                 </div>
             </div>
             """
@@ -169,24 +173,4 @@ equities_list = [
     {"n": "Amazon", "s": "NASDAQ:AMZN"}, {"n": "Meta", "s": "NASDAQ:META"},
     {"n": "Tesla", "s": "NASDAQ:TSLA"}, {"n": "Berkshire", "s": "NYSE:BRK.B"},
     {"n": "Eli Lilly", "s": "NYSE:LLY"}, {"n": "Visa", "s": "NYSE:V"},
-    {"n": "JPMorgan", "s": "NYSE:JPM"}, {"n": "TSMC", "s": "NYSE:TSM"},
-    {"n": "UnitedHealth", "s": "NYSE:UNH"}, {"n": "Mastercard", "s": "NYSE:MA"},
-    {"n": "Broadcom", "s": "NASDAQ:AVGO"}, {"n": "Home Depot", "s": "NYSE:HD"},
-    {"n": "P&G", "s": "NYSE:PG"}, {"n": "Costco", "s": "NASDAQ:COST"},
-    {"n": "J&J", "s": "NYSE:JNJ"}, {"n": "Salesforce", "s": "NYSE:CRM"},
-    {"n": "AMD", "s": "NASDAQ:AMD"}, {"n": "Netflix", "s": "NASDAQ:NFLX"}
-]
-
-if st.session_state.page == "📈 Equities":
-    render_portal_grid(equities_list, "eq")
-
-elif st.session_state.page == "₿ Crypto":
-    crypto_list = [{"n": "Bitcoin", "s": "BINANCE:BTCUSDT"}, {"n": "Ethereum", "s": "BINANCE:ETHUSDT"}, {"n": "Solana", "s": "BINANCE:SOLUSDT"}]
-    render_portal_grid(crypto_list, "cry")
-
-elif st.session_state.page == "🛢️ Commodities & Oil":
-    commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
-    render_portal_grid(commodities_list, "com")
-
-elif st.session_state.page == "📊 Heat Map":
-    components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="650" frameborder="0"></iframe>', height=670)
+    {"n": "JPMorgan", "s": "NYSE:JPM"}, {"n": "
