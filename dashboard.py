@@ -11,12 +11,13 @@ st.set_page_config(page_title="DC STOXX Portal", layout="wide", initial_sidebar_
 if 'page' not in st.session_state:
     st.session_state.page = "📈 Equities"
 
-# --- 2. HET VISUELE STYLING BLOK ---
+# --- 2. HET VISUELE STYLING BLOK (Agressieve Schoonmaak) ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder de Streamlit Header en witruimte volledig */
+    /* 2A. Verwijder ELKE vorm van witte balk boven het logo */
     [data-testid="stHeader"], .st-emotion-cache-18ni73i, .st-emotion-cache-v698uo {{
         display: none !important;
+        height: 0px !important;
     }}
     
     .stApp {{
@@ -35,7 +36,7 @@ st.markdown(f"""
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen Fix */
+    /* 2C. Sidebar Knoppen: GEEN KLEURVERANDERING, ALLEEN ENLARGE */
     div.stButton > button {{
         width: 100% !important;
         background-color: white !important;
@@ -45,24 +46,19 @@ st.markdown(f"""
         font-weight: bold !important;
         font-size: 1.1rem !important;
         padding: 12px 15px !important;
-        transition: transform 0.2s ease !important;
+        transition: transform 0.2s ease-in-out !important;
         display: block !important;
     }}
 
-    div.stButton > button:hover {{
-        transform: scale(1.02) !important;
-        border-color: {BRAND_GOLD} !important;
-    }}
-
-    div.stButton > button:focus, div.stButton > button:active {{
-        background-color: white !important;
-        color: {BRAND_NAVY} !important;
+    div.stButton > button:hover, div.stButton > button:focus, div.stButton > button:active {{
+        transform: scale(1.05) !important; /* Vergroot de box */
+        background-color: white !important; /* Blijft wit */
+        color: {BRAND_NAVY} !important;    /* Blijft navy */
         border-color: {BRAND_GOLD} !important;
         box-shadow: none !important;
-        outline: none !important;
     }}
 
-    /* 2D. De Witte Top Header */
+    /* 2D. De Witte Top Header (Echt tegen de bovenkant) */
     .white-top-header {{
         background-color: #FFFFFF;
         width: 100%;
@@ -71,7 +67,7 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -100px; /* Agressief omhoog om witte balk te killen */
+        margin-top: -100px; /* Forceert de balk over de lege ruimte */
     }}
 
     .main .block-container {{
@@ -108,13 +104,13 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Precies 54px: strakker en beter passend)
+# Ticker Tape (Hoogte op 60px: de perfecte balans voor leesbaarheid)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
-    width="100%" height="54" frameborder="0" style="display:block; margin:0;"></iframe>
-""", height=54)
+    width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
+""", height=60)
 
-# --- 5. MAIN CONTENT ---
+# --- 5. MAIN CONTENT AREA ---
 st.title(f"{st.session_state.page}")
 st.markdown(f"*{datetime.now().strftime('%d %B %Y')} - Institutional Intelligence*")
 
@@ -123,9 +119,7 @@ def render_portal_grid(asset_list, prefix):
     for i, asset in enumerate(asset_list):
         unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
-            # DE "PRECISION" HOVER LOGICA
-            # We laden de chart ACHTER de meter (Pre-load).
-            # De hover trigger zit alleen op de 'trigger-zone' (bovenkant).
+            # DE "PRE-LOAD & SAFE-ZONE" HOVER LOGICA
             card_html = f"""
             <style>
                 .asset-box {{
@@ -136,16 +130,16 @@ def render_portal_grid(asset_list, prefix):
                     position: absolute; width: 100%; height: 100%; top: 0; left: 0;
                     transition: opacity 0.3s ease;
                 }}
-                .chart-layer {{ z-index: 1; opacity: 1; }} /* Altijd op 1 zodat het laadt */
+                /* Chart laadt altijd op de achtergrond (Pre-load) */
+                .chart-layer {{ z-index: 1; opacity: 1; }} 
                 .gauge-layer {{ z-index: 2; opacity: 1; pointer-events: auto; }}
                 
-                /* De onzichtbare knop die de switch triggert (alleen bovenkant) */
+                /* Trigger zone: Alleen de bovenste 170px (Price info) wisselt naar de chart */
                 .trigger-zone {{
-                    position: absolute; top: 0; left: 0; width: 100%; height: 160px;
+                    position: absolute; top: 0; left: 0; width: 100%; height: 170px;
                     z-index: 10; cursor: pointer;
                 }}
                 
-                /* Wanneer je over de trigger-zone gaat, verdwijnt de meter */
                 .trigger-zone:hover ~ .gauge-layer {{
                     opacity: 0; pointer-events: none;
                 }}
@@ -173,4 +167,21 @@ equities_list = [
     {"n": "Amazon", "s": "NASDAQ:AMZN"}, {"n": "Meta", "s": "NASDAQ:META"},
     {"n": "Tesla", "s": "NASDAQ:TSLA"}, {"n": "Berkshire", "s": "NYSE:BRK.B"},
     {"n": "Eli Lilly", "s": "NYSE:LLY"}, {"n": "Visa", "s": "NYSE:V"},
-    {"n": "JPMorgan", "s": "NYSE:JPM"}, {"n": "
+    {"n": "JPMorgan", "s": "NYSE:JPM"}, {"n": "TSMC", "s": "NYSE:TSM"},
+    {"n": "UnitedHealth", "s": "NYSE:UNH"}, {"n": "Mastercard", "s": "NYSE:MA"},
+    {"n": "Broadcom", "s": "NASDAQ:AVGO"}, {"n": "Home Depot", "s": "NYSE:HD"},
+    {"n": "P&G", "s": "NYSE:PG"}, {"n": "Costco", "s": "NASDAQ:COST"},
+    {"n": "J&J", "s": "NYSE:JNJ"}, {"n": "Salesforce", "s": "NYSE:CRM"},
+    {"n": "AMD", "s": "NASDAQ:AMD"}, {"n": "Netflix", "s": "NASDAQ:NFLX"}
+]
+
+if st.session_state.page == "📈 Equities":
+    render_portal_grid(equities_list, "eq")
+elif st.session_state.page == "₿ Crypto":
+    crypto_list = [{"n": "Bitcoin", "s": "BINANCE:BTCUSDT"}, {"n": "Ethereum", "s": "BINANCE:ETHUSDT"}, {"n": "Solana", "s": "BINANCE:SOLUSDT"}]
+    render_portal_grid(crypto_list, "cry")
+elif st.session_state.page == "🛢️ Commodities & Oil":
+    commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
+    render_portal_grid(commodities_list, "com")
+elif st.session_state.page == "📊 Heat Map":
+    components.html('<iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="650" frameborder="0"></iframe>', height=670)
