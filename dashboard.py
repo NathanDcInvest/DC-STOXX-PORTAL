@@ -11,7 +11,7 @@ st.set_page_config(page_title="DC STOXX Portal", layout="wide", initial_sidebar_
 if 'page' not in st.session_state:
     st.session_state.page = "📈 Equities"
 
-# --- 2. HET VISUELE STYLING BLOK (Agressieve Schoonmaak) ---
+# --- 2. HET VISUELE STYLING BLOK ---
 st.markdown(f"""
     <style>
     /* 2A. Verwijder ELKE vorm van witte balk boven het logo definitief */
@@ -37,7 +37,7 @@ st.markdown(f"""
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen: GEEN KLEURVERANDERING, ALLEEN ENLARGE */
+    /* 2C. Sidebar Knoppen */
     div.stButton > button {{
         width: 100% !important;
         background-color: white !important;
@@ -60,7 +60,7 @@ st.markdown(f"""
         outline: none !important;
     }}
 
-    /* 2D. De Witte Top Header (Echt tegen de bovenkant) */
+    /* 2D. De Witte Top Header */
     .white-top-header {{
         background-color: #FFFFFF;
         width: 100%;
@@ -69,7 +69,7 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -120px; /* Extra agressieve lift om de ghost-header te killen */
+        margin-top: -120px; 
         position: relative;
         z-index: 999;
     }}
@@ -109,7 +109,7 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Hoogte op 60px)
+# Ticker Tape
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
     width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
@@ -123,46 +123,48 @@ def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
         with cols[i % 3]:
-            # DE NIEUWE SMART BOX LOGICA (Met ingebouwde JS Tabs en off-screen rendering)
+            # FIX: Z-index stacking & grotere box (600px)
             card_html = f"""
-            <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:550px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+            <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
                 
-                <div style="height:150px; width:100%;">
-                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="150" frameborder="0" scrolling="no"></iframe>
+                <div style="height:160px; width:100%;">
+                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0" scrolling="no"></iframe>
                 </div>
                 
-                <div style="display:flex; height:40px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E;">
-                    <div id="tab_meter_{i}" onclick="showMeter_{i}()" style="flex:1; text-align:center; line-height:40px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:13px; transition:0.3s;">
+                <div style="display:flex; height:45px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E;">
+                    <div id="tab_meter_{i}" onclick="showMeter_{i}()" style="flex:1; text-align:center; line-height:45px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
                         ⏱️ TECHNICAL METER
                     </div>
-                    <div id="tab_chart_{i}" onclick="showChart_{i}()" style="flex:1; text-align:center; line-height:40px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:13px; transition:0.3s;">
+                    <div id="tab_chart_{i}" onclick="showChart_{i}()" style="flex:1; text-align:center; line-height:45px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:14px; transition:0.3s;">
                         📊 1Y CHART
                     </div>
                 </div>
                 
                 <div style="position:relative; flex:1; width:100%; overflow:hidden;">
                     
-                    <div id="content_meter_{i}" style="position:absolute; top:0; left:0; width:100%; height:100%; transition: left 0.3s ease;">
-                        <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0" scrolling="no"></iframe>
+                    <div id="content_chart_{i}" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+                        <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
                     </div>
                     
-                    <div id="content_chart_{i}" style="position:absolute; top:0; left:-2000px; width:100%; height:100%; transition: left 0.3s ease;">
-                        <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                    <div id="content_meter_{i}" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:2; background:#131722; transition: opacity 0.3s ease;">
+                        <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
                     </div>
                 </div>
 
                 <script>
                     function showMeter_{i}() {{
-                        document.getElementById('content_meter_{i}').style.left = '0';
-                        document.getElementById('content_chart_{i}').style.left = '-2000px';
+                        document.getElementById('content_meter_{i}').style.opacity = '1';
+                        document.getElementById('content_meter_{i}').style.pointerEvents = 'auto';
+                        
                         document.getElementById('tab_meter_{i}').style.background = '#131722';
                         document.getElementById('tab_meter_{i}').style.color = '#B89B5E';
                         document.getElementById('tab_chart_{i}').style.background = '#0A1B2E';
                         document.getElementById('tab_chart_{i}').style.color = '#8892B0';
                     }}
                     function showChart_{i}() {{
-                        document.getElementById('content_meter_{i}').style.left = '-2000px';
-                        document.getElementById('content_chart_{i}').style.left = '0';
+                        document.getElementById('content_meter_{i}').style.opacity = '0';
+                        document.getElementById('content_meter_{i}').style.pointerEvents = 'none';
+                        
                         document.getElementById('tab_chart_{i}').style.background = '#131722';
                         document.getElementById('tab_chart_{i}').style.color = '#B89B5E';
                         document.getElementById('tab_meter_{i}').style.background = '#0A1B2E';
@@ -171,8 +173,8 @@ def render_portal_grid(asset_list, prefix):
                 </script>
             </div>
             """
-            # Totale component box height aangepast naar de inhoud
-            components.html(card_html, height=560)
+            # Totale iframe hoogte ruim genoeg maken (620px)
+            components.html(card_html, height=620)
 
 # Assets
 equities_list = [
