@@ -9,30 +9,87 @@ BRAND_NAVY = "#0A1B2E"
 
 st.set_page_config(page_title="DC STOXX Portal", layout="wide", initial_sidebar_state="expanded")
 
-# Geavanceerde CSS voor Portal Look
+# Geavanceerde CSS voor Centered Logo en Compacte Witte Balk
 st.markdown(f"""
     <style>
+    /* Algemene achtergrond */
     .stApp {{ background-color: {BRAND_NAVY}; color: white; }}
     [data-testid="stSidebar"] {{ background-color: {BRAND_NAVY}; border-right: 2px solid {BRAND_GOLD}; }}
     
+    /* De Witte Logo Balk bovenaan */
+    .logo-bar {{
+        background-color: #FFFFFF;
+        width: 100%;
+        padding: 5px 0; /* Zeer compacte padding */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 0px;
+        border-bottom: 3px solid {BRAND_GOLD};
+    }}
+    
+    /* Logo afbeelding styling */
+    .logo-img {{
+        max-height: 80px; /* Forceert het logo in een mooie hoogte */
+        width: auto;
+    }}
+
     /* Tab Styling */
-    .stTabs [data-baseweb="tab-list"] {{ gap: 24px; background-color: transparent; }}
+    .stTabs [data-baseweb="tab-list"] {{ gap: 24px; background-color: transparent; padding-top: 10px; }}
     .stTabs [data-baseweb="tab"] {{
         height: 50px; background-color: transparent; border: none; color: #8892B0;
-        font-weight: 600; font-size: 16px; transition: 0.3s;
+        font-weight: 600; font-size: 16px;
     }}
     .stTabs [aria-selected="true"] {{ 
         border-bottom: 3px solid {BRAND_GOLD} !important; 
         color: {BRAND_GOLD} !important; 
     }}
 
-    /* Container Header */
-    .main .block-container {{ padding-top: 1rem; max-width: 95%; }}
-    h1, h2, h3, p {{ font-family: 'Inter', sans-serif; }}
+    /* Verwijder standaard Streamlit padding bovenaan */
+    .main .block-container {{ padding-top: 0rem; max-width: 95%; }}
+    [data-testid="stHeader"] {{ background: rgba(0,0,0,0); }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DE VOLLEDIGE DATASET ---
+# --- 2. HET LOGO CENTRAAL IN DE WITTE BALK ---
+# We gebruiken st.container om de logo-bar te simuleren
+with st.container():
+    # De witte balk wordt via HTML/CSS bovenaan geplaatst
+    st.markdown("""
+        <div class="logo-bar">
+            <img src="https://raw.githubusercontent.com/JouwGitHubGebruikersnaam/JouwRepoNaam/main/Logo.png" class="logo-img">
+        </div>
+    """, unsafe_allow_html=True)
+    # LET OP: Vervang bovenstaande URL door de 'Raw' link van je logo op GitHub 
+    # OF gebruik de onderstaande kolommen-methode als de link niet werkt:
+    
+    # col_l, col_logo, col_r = st.columns([1, 0.8, 1])
+    # with col_logo:
+    #     st.image("Logo.png", use_container_width=True)
+
+# --- 3. SIDEBAR (Nieuwsfeed) ---
+with st.sidebar:
+    st.markdown(f"<h3 style='text-align:center; color:{BRAND_GOLD}; letter-spacing:3px; font-weight:bold; margin-top:20px;'>INTELLIGENCE</h3>", unsafe_allow_html=True)
+    st.markdown("---")
+    components.html(f"""
+        <iframe src="https://www.tradingview.com/embed-widget/timeline/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
+        width="100%" height="1000" frameborder="0"></iframe>
+    """, height=1000)
+
+# --- 4. TOP BAR (Ticker Tape) ---
+components.html(f"""
+    <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true" 
+    width="100%" height="50" frameborder="0"></iframe>
+""", height=50)
+
+# --- 5. HEADER (Naam & Status) ---
+c1, c2 = st.columns([3, 1])
+with c1:
+    st.markdown(f"<p style='color:{BRAND_GOLD}; font-size:1.1rem; margin-top:10px;'>Professional Grade Intelligence Terminal</p>", unsafe_allow_html=True)
+with c2:
+    st.markdown(f"<div style='text-align:right;'><h2>{datetime.now().strftime('%H:%M')}</h2><p style='color:#00ff88;'>● MARKETS LIVE</p></div>", unsafe_allow_html=True)
+
+# --- 6. ASSETS DATA ---
 equities = [
     {"n": "Apple", "s": "NASDAQ:AAPL"}, {"n": "Microsoft", "s": "NASDAQ:MSFT"},
     {"n": "Nvidia", "s": "NASDAQ:NVDA"}, {"n": "Alphabet", "s": "NASDAQ:GOOGL"},
@@ -52,39 +109,11 @@ others = [
     {"n": "Crude Oil", "s": "TVC:USOIL"}
 ]
 
-# --- 3. SIDEBAR ---
-with st.sidebar:
-    try:
-        st.image("Logo.png", use_container_width=True)
-    except:
-        st.title("DC STOXX")
-    st.markdown(f"<p style='text-align:center; color:{BRAND_GOLD}; letter-spacing:3px; font-weight:bold;'>INTELLIGENCE</p>", unsafe_allow_html=True)
-    st.markdown("---")
-    components.html(f"""
-        <iframe src="https://www.tradingview.com/embed-widget/timeline/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
-        width="100%" height="1000" frameborder="0"></iframe>
-    """, height=1000)
-
-# --- 4. TOP BAR (Ticker Tape) ---
-components.html(f"""
-    <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true" 
-    width="100%" height="50" frameborder="0"></iframe>
-""", height=50)
-
-# --- 5. HEADER ---
-c1, c2 = st.columns([3, 1])
-with c1:
-    st.markdown("<h1 style='margin:0;'>DC STOXX INVESTMENT PORTAL</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:{BRAND_GOLD}; font-size:1.1rem;'>Professional Grade Intelligence Terminal</p>", unsafe_allow_html=True)
-with c2:
-    st.markdown(f"<div style='text-align:right;'><h2>{datetime.now().strftime('%H:%M')}</h2><p style='color:#00ff88;'>● MARKETS LIVE</p></div>", unsafe_allow_html=True)
-
-# --- 6. PORTAL NAVIGATION (Volgorde aangepast: Equities nu als eerste) ---
+# --- 7. TABS ---
 tab_equities, tab_overview, tab_crypto, tab_screener = st.tabs([
     "📈 Equities", "📊 Market Overview", "₿ Crypto & Commodities", "🔍 Pro Screener"
 ])
 
-# Functie voor de Hover Cards
 def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
@@ -122,7 +151,6 @@ def render_portal_grid(asset_list, prefix):
             """
             components.html(card_html, height=560)
 
-# --- TAB LOGICA ---
 with tab_equities:
     render_portal_grid(equities, "eq")
 
