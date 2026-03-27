@@ -14,10 +14,11 @@ if 'page' not in st.session_state:
 # --- 2. HET VISUELE STYLING BLOK (Agressieve Schoonmaak) ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder ELKE vorm van witte balk boven het logo */
-    [data-testid="stHeader"], .st-emotion-cache-18ni73i, .st-emotion-cache-v698uo {{
+    /* 2A. Verwijder ELKE vorm van witte balk boven het logo definitief */
+    header[data-testid="stHeader"] {{
         display: none !important;
         height: 0px !important;
+        visibility: hidden !important;
     }}
     
     .stApp {{
@@ -51,11 +52,12 @@ st.markdown(f"""
     }}
 
     div.stButton > button:hover, div.stButton > button:focus, div.stButton > button:active {{
-        transform: scale(1.05) !important; /* Vergroot de box */
-        background-color: white !important; /* Blijft wit */
-        color: {BRAND_NAVY} !important;    /* Blijft navy */
+        transform: scale(1.05) !important; 
+        background-color: white !important; 
+        color: {BRAND_NAVY} !important;    
         border-color: {BRAND_GOLD} !important;
         box-shadow: none !important;
+        outline: none !important;
     }}
 
     /* 2D. De Witte Top Header (Echt tegen de bovenkant) */
@@ -67,11 +69,14 @@ st.markdown(f"""
         justify-content: center;
         align-items: center;
         border-bottom: 3px solid {BRAND_GOLD};
-        margin-top: -100px; /* Forceert de balk over de lege ruimte */
+        margin-top: -120px; /* Extra agressieve lift om de ghost-header te killen */
+        position: relative;
+        z-index: 999;
     }}
 
     .main .block-container {{
         padding-top: 0rem !important;
+        margin-top: 0rem !important;
         max-width: 95%;
     }}
     </style>
@@ -104,7 +109,7 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape (Hoogte op 60px: de perfecte balans voor leesbaarheid)
+# Ticker Tape (Hoogte op 60px)
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=true&displayMode=adaptive" 
     width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
@@ -117,48 +122,57 @@ st.markdown(f"*{datetime.now().strftime('%d %B %Y')} - Institutional Intelligenc
 def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
-        unique_id = f"{prefix}_{i}"
         with cols[i % 3]:
-            # DE "PRE-LOAD & SAFE-ZONE" HOVER LOGICA
+            # DE NIEUWE SMART BOX LOGICA (Met ingebouwde JS Tabs en off-screen rendering)
             card_html = f"""
-            <style>
-                .asset-box {{
-                    background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; 
-                    height:520px; overflow:hidden; margin-bottom:25px; position:relative;
-                }}
-                .layer {{
-                    position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-                    transition: opacity 0.3s ease;
-                }}
-                /* Chart laadt altijd op de achtergrond (Pre-load) */
-                .chart-layer {{ z-index: 1; opacity: 1; }} 
-                .gauge-layer {{ z-index: 2; opacity: 1; pointer-events: auto; }}
+            <div style="background:#131722; border:1px solid {BRAND_GOLD}44; border-radius:12px; height:550px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
                 
-                /* Trigger zone: Alleen de bovenste 170px (Price info) wisselt naar de chart */
-                .trigger-zone {{
-                    position: absolute; top: 0; left: 0; width: 100%; height: 170px;
-                    z-index: 10; cursor: pointer;
-                }}
-                
-                .trigger-zone:hover ~ .gauge-layer {{
-                    opacity: 0; pointer-events: none;
-                }}
-            </style>
-            
-            <div class="asset-box">
-                <div class="trigger-zone"></div>
-                
-                <div class="chart-layer">
-                    <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0"></iframe>
+                <div style="height:150px; width:100%;">
+                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="150" frameborder="0" scrolling="no"></iframe>
                 </div>
                 
-                <div class="gauge-layer">
-                    <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0"></iframe>
-                    <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0"></iframe>
+                <div style="display:flex; height:40px; border-top:1px solid #2a2e39; border-bottom:1px solid #2a2e39; background:#0A1B2E;">
+                    <div id="tab_meter_{i}" onclick="showMeter_{i}()" style="flex:1; text-align:center; line-height:40px; color:#B89B5E; background:#131722; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:13px; transition:0.3s;">
+                        ⏱️ TECHNICAL METER
+                    </div>
+                    <div id="tab_chart_{i}" onclick="showChart_{i}()" style="flex:1; text-align:center; line-height:40px; color:#8892B0; background:#0A1B2E; cursor:pointer; font-family:sans-serif; font-weight:bold; font-size:13px; transition:0.3s;">
+                        📊 1Y CHART
+                    </div>
                 </div>
+                
+                <div style="position:relative; flex:1; width:100%; overflow:hidden;">
+                    
+                    <div id="content_meter_{i}" style="position:absolute; top:0; left:0; width:100%; height:100%; transition: left 0.3s ease;">
+                        <iframe src="https://www.tradingview.com/embed-widget/technical-analysis/?symbol={asset['s']}&colorTheme=dark&isTransparent=true&interval=1D" width="100%" height="360" frameborder="0" scrolling="no"></iframe>
+                    </div>
+                    
+                    <div id="content_chart_{i}" style="position:absolute; top:0; left:-2000px; width:100%; height:100%; transition: left 0.3s ease;">
+                        <iframe src="https://www.tradingview.com/embed-widget/mini-symbol-overview/?symbol={asset['s']}&colorTheme=dark&width=100%&height=100%&dateRange=12M" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                    </div>
+                </div>
+
+                <script>
+                    function showMeter_{i}() {{
+                        document.getElementById('content_meter_{i}').style.left = '0';
+                        document.getElementById('content_chart_{i}').style.left = '-2000px';
+                        document.getElementById('tab_meter_{i}').style.background = '#131722';
+                        document.getElementById('tab_meter_{i}').style.color = '#B89B5E';
+                        document.getElementById('tab_chart_{i}').style.background = '#0A1B2E';
+                        document.getElementById('tab_chart_{i}').style.color = '#8892B0';
+                    }}
+                    function showChart_{i}() {{
+                        document.getElementById('content_meter_{i}').style.left = '-2000px';
+                        document.getElementById('content_chart_{i}').style.left = '0';
+                        document.getElementById('tab_chart_{i}').style.background = '#131722';
+                        document.getElementById('tab_chart_{i}').style.color = '#B89B5E';
+                        document.getElementById('tab_meter_{i}').style.background = '#0A1B2E';
+                        document.getElementById('tab_meter_{i}').style.color = '#8892B0';
+                    }}
+                </script>
             </div>
             """
-            components.html(card_html, height=530)
+            # Totale component box height aangepast naar de inhoud
+            components.html(card_html, height=560)
 
 # Assets
 equities_list = [
