@@ -12,10 +12,10 @@ st.set_page_config(page_title="DC STOXX Portal", layout="wide", initial_sidebar_
 if 'page' not in st.session_state:
     st.session_state.page = "📈 Equities"
 
-# --- 2. HET VISUELE STYLING BLOK (Met Mobile Optimizations!) ---
+# --- 2. HET VISUELE STYLING BLOK ---
 st.markdown(f"""
     <style>
-    /* 2A. Verwijder ELKE vorm van witte balk boven het logo definitief */
+    /* Verwijder de witte balk */
     header[data-testid="stHeader"], .st-emotion-cache-18ni73i, .st-emotion-cache-v698uo {{
         display: none !important;
         height: 0px !important;
@@ -27,7 +27,7 @@ st.markdown(f"""
         color: {BRAND_NAVY};
     }}
     
-    /* 2B. Sidebar Styling */
+    /* Sidebar Styling */
     [data-testid="stSidebar"] {{
         background-color: #FFFFFF !important;
         border-right: 2px solid {BRAND_GOLD};
@@ -38,7 +38,7 @@ st.markdown(f"""
         color: {BRAND_NAVY} !important;
     }}
 
-    /* 2C. Sidebar Knoppen */
+    /* Sidebar Knoppen */
     div.stButton > button {{
         width: 100% !important;
         background-color: white !important;
@@ -61,7 +61,7 @@ st.markdown(f"""
         outline: none !important;
     }}
 
-    /* 2D. De Witte Top Header */
+    /* Top Header */
     .white-top-header {{
         background-color: #FFFFFF;
         width: 100%;
@@ -85,25 +85,10 @@ st.markdown(f"""
         color: {BRAND_NAVY} !important;
     }}
 
-    /* --- DE NIEUWE MOBILE CSS LOGICA (Media Queries) --- */
-    .smart-tab {{
-        flex: 1;
-        text-align: center;
-        line-height: 45px;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-weight: bold;
-        font-size: 14px;
-        transition: 0.3s;
-    }}
-
     @media (max-width: 768px) {{
         .white-top-header {{
-            margin-top: -60px !important; /* Voorkomt dat het logo buiten het iPhone scherm valt */
+            margin-top: -60px !important; 
             padding: 10px 0 !important;
-        }}
-        .smart-tab {{
-            font-size: 10.5px !important; /* Verkleint de tabtekst voor smalle touchscreens */
         }}
         .main .block-container {{
             padding-left: 0.5rem !important;
@@ -140,7 +125,6 @@ with c_logo:
         st.markdown(f"<h2 style='color:{BRAND_NAVY}; text-align:center;'>STOXX</h2>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Ticker Tape 
 components.html("""
     <iframe src="https://www.tradingview.com/embed-widget/ticker-tape/?locale=en&colorTheme=dark&isTransparent=false&displayMode=adaptive" 
     width="100%" height="60" frameborder="0" style="display:block; margin:0;"></iframe>
@@ -153,16 +137,36 @@ st.markdown(f"*{datetime.now().strftime('%d %B %Y')} - Institutional Intelligenc
 def render_portal_grid(asset_list, prefix):
     cols = st.columns(3)
     for i, asset in enumerate(asset_list):
-        # Streamlit regelt de mobiele val naar 1 kolom automatisch voor de loop!
         with cols[i % 3]:
+            # FIX: CSS zit nu BINNEN de iframe (card_html) en de hoogte is 650px
             card_html = f"""
-            <div style="background:{BOX_BG}; border:1px solid {BRAND_GOLD}; border-radius:12px; height:600px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+            <style>
+                .smart-tab {{
+                    flex: 1;
+                    text-align: center;
+                    line-height: 45px;
+                    cursor: pointer;
+                    font-family: sans-serif;
+                    font-weight: bold;
+                    font-size: 14px;
+                    transition: background 0.3s, color 0.3s;
+                    user-select: none;
+                    -webkit-user-select: none;
+                }}
+                @media (max-width: 600px) {{
+                    .smart-tab {{
+                        font-size: 11px !important;
+                    }}
+                }}
+            </style>
+            
+            <div style="background:{BOX_BG}; border:1px solid {BRAND_GOLD}; border-radius:12px; height:650px; overflow:hidden; margin-bottom:25px; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
                 
-                <div style="height:160px; width:100%;">
+                <div style="height:160px; width:100%; flex-shrink:0;">
                     <iframe src="https://www.tradingview.com/embed-widget/symbol-info/?symbol={asset['s']}&colorTheme=dark&isTransparent=true" width="100%" height="160" frameborder="0" scrolling="no"></iframe>
                 </div>
                 
-                <div style="display:flex; height:45px; border-top:1px solid {BRAND_GOLD}; border-bottom:1px solid {BRAND_GOLD}; background:{BRAND_NAVY}; z-index: 10;">
+                <div style="display:flex; height:45px; flex-shrink:0; border-top:1px solid {BRAND_GOLD}; border-bottom:1px solid {BRAND_GOLD}; background:{BRAND_NAVY}; z-index: 10;">
                     <div id="tab_chart_{i}" class="smart-tab" onclick="loadChart_{i}()" style="color:{BRAND_GOLD}; background:{BOX_BG}; border-right:1px solid {BRAND_GOLD};">
                         📊 CHART
                     </div>
@@ -208,7 +212,8 @@ def render_portal_grid(asset_list, prefix):
                 </script>
             </div>
             """
-            components.html(card_html, height=620)
+            # Totale hoogte van iframe verhoogd naar 670 om de 650px container ruimte te geven
+            components.html(card_html, height=670)
 
 # Assets
 equities_list = [
@@ -234,7 +239,6 @@ elif st.session_state.page == "🛢️ Commodities & Oil":
     commodities_list = [{"n": "Gold", "s": "TVC:GOLD"}, {"n": "Crude Oil", "s": "TVC:USOIL"}]
     render_portal_grid(commodities_list, "com")
 elif st.session_state.page == "📊 Heat Map":
-    # MOBILE FIX: CSS Container gebruikt in plaats van de st.columns([1, 5, 1]) logica die mobiel breekt.
     components.html("""
     <div style="max-width: 1100px; margin: 0 auto; border: 1px solid #B89B5E; border-radius: 12px; overflow: hidden; background: #131722;">
         <iframe src="https://www.tradingview.com/embed-widget/stock-heatmap/?colorTheme=dark&isTransparent=true&index=SPX500" width="100%" height="850" frameborder="0" style="display: block;"></iframe>
